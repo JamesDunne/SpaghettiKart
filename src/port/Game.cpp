@@ -44,6 +44,11 @@
 #include "engine/editor/SceneManager.h"
 #include "RegisteredActors.h"
 
+#include "engine/cameras/GameCamera.h"
+#include "engine/cameras/FreeCamera.h"
+#include "engine/cameras/TourCamera.h"
+#include "engine/cameras/LookBehindCamera.h"
+
 #ifdef _WIN32
 #include <locale.h>
 #endif
@@ -54,6 +59,9 @@ extern "C" {
 #include "audio/external.h"
 #include "render_courses.h"
 #include "menus.h"
+#include "update_objects.h"
+#include "spawn_players.h"
+#include "src/enhancements/collision_viewer.h"
 // #include "engine/wasm.h"
 }
 
@@ -301,25 +309,41 @@ s32 CM_GetCrossingOnTriggered(uintptr_t* crossing) {
     }
 }
 
-void CM_RenderCourse(struct UnkStruct_800DC5EC* arg0) {
-    if (gWorldInstance.GetCurrentCourse()->IsMod() == false) {
-        if ((CVarGetInteger("gFreecam", 0) == true)) {
-            // Render credits courses
-            //gSPClearGeometryMode(gDisplayListHead++, G_LIGHTING);
-            //gSPSetGeometryMode(gDisplayListHead++, G_SHADE | G_CULL_BACK | G_SHADING_SMOOTH);
-            // render_credits();
-            // return;
+/**
+ * Tracks are rendered in two ways
+ * 1) Track sections --> The scene is split into multiple sections and rendered piece by piece
+ * 2) Full scene --> The entire scene is rendered at once
+ * 
+ * Custom tracks only use the Render() method, and they only render the full scene.
+ * They do not use RenderCredits() and they do not use track sections.
+ */
+void CM_RenderCourse(struct UnkStruct_800DC5EC* screen) {
+    if (nullptr == gWorldInstance.GetCurrentCourse()) {
+        return;
+    }
+
+    // Custom tracks should never use RenderCredits();
+    if (gWorldInstance.GetCurrentCourse()->IsMod()) {
+        switch(screen->camera->renderMode) {
+            default:
+                gWorldInstance.GetCurrentCourse()->Render(screen);
+                break;
+            case RENDER_COLLISION_MESH:
+                render_collision();
+                break;
+        } 
+    } else {
+        switch(screen->camera->renderMode) {
+            case RENDER_FULL_SCENE:
+                gWorldInstance.GetCurrentCourse()->RenderCredits();
+                break;
+            case RENDER_TRACK_SECTIONS:
+                gWorldInstance.GetCurrentCourse()->Render(screen);
+                break;
+            case RENDER_COLLISION_MESH:
+                render_collision();
+                break;
         }
-    }
-
-    if (gWorldInstance.GetCurrentCourse()) {
-        gWorldInstance.GetCurrentCourse()->Render(arg0);
-    }
-}
-
-void CM_RenderCredits() {
-    if (gWorldInstance.GetCurrentCourse()) {
-        gWorldInstance.GetCurrentCourse()->RenderCredits();
     }
 }
 
@@ -336,6 +360,14 @@ void CM_DrawActors(Camera* camera) {
             actor->Draw(camera);
         }
     }
+
+    for (auto* camera : gWorldInstance.Cameras) {
+        if (auto* tourCam = dynamic_cast<TourCamera*>(camera)) {
+            if (tourCam->IsActive()) {
+                tourCam->Draw();
+            }
+        }
+    }
 }
 
 void CM_DrawStaticMeshActors() {
@@ -343,15 +375,166 @@ void CM_DrawStaticMeshActors() {
 }
 
 void CM_BeginPlay() {
+    static bool tour = false;
+    auto course = gWorldInstance.GetCurrentCourse();
+    
+    if (nullptr == course) {
+        return; 
+    }
+
+    if (tour) {
+      //  gWorldInstance.Cameras[2]->SetActive(true);
+       // D_800DC5EC->camera = gWorldInstance.Cameras[2]->Get();
+        if (reinterpret_cast<TourCamera*>(gWorldInstance.Cameras[2])->IsTourComplete()) {
+            tour = false;
+            D_800DC5EC->pendingCamera = &cameras[0];
+        }
+    }
+
     if (gWorldInstance.GetCurrentCourse()) {
         // This line should likely be moved.
         // It's here so PreInit is after the scene file has been loaded
         // It used to be at the start of BeginPlay
         Editor::LoadLevel(gWorldInstance.GetCurrentCourse().get(), gWorldInstance.GetCurrentCourse()->SceneFilePtr);
     }
+
     gWorldInstance.GetRaceManager().PreInit();
     gWorldInstance.GetRaceManager().BeginPlay();
     gWorldInstance.GetRaceManager().PostInit();
+}
+
+Camera* CM_GetPlayerCamera(s32 playerIndex) {
+    for (GameCamera* cam : gWorldInstance.Cameras) {
+        // Make sure this is a player camera and not a different type of camera
+        if (typeid(*cam) == typeid(GameCamera)) {
+            Camera* camera = cam->Get();
+            if (camera->playerId == playerIndex) {
+                return camera;
+            }
+        }
+    }
+    return nullptr;
+}
+
+void CM_SetViewProjection(Camera* camera) {
+    for (GameCamera* gameCamera : gWorldInstance.Cameras) {
+        if (camera == gameCamera->Get()) {
+            gameCamera->SetViewProjection();
+        }
+    }
+}
+
+void CM_TickCameras() {
+    gWorldInstance.TickCameras();
+}
+
+Camera* CM_AddCamera(Vec3f spawn, s16 rot, u32 mode) {
+    if (gWorldInstance.Cameras.size() >= NUM_CAMERAS) {
+        printf("Reached the max number of cameras, %d\n", NUM_CAMERAS);
+        return nullptr;
+    }
+    gWorldInstance.Cameras.push_back(new GameCamera(FVector(spawn[0], spawn[1], spawn[2]), rot, mode));
+    return gWorldInstance.Cameras.back()->Get();
+}
+
+Camera* CM_AddFreeCamera(Vec3f spawn, s16 rot, u32 mode) {
+    if (gWorldInstance.Cameras.size() >= NUM_CAMERAS) {
+        printf("Reached the max number of cameras, %d\n", NUM_CAMERAS);
+        return nullptr;
+    }
+    gWorldInstance.Cameras.push_back(new FreeCamera(FVector(spawn[0], spawn[1], spawn[2]), rot, mode));
+    return gWorldInstance.Cameras.back()->Get();
+}
+
+Camera* CM_AddTourCamera(Vec3f spawn, s16 rot, u32 mode) {
+    if (gWorldInstance.Cameras.size() >= NUM_CAMERAS) {
+        // This is to prevent soft locking the game
+        printf("Reached the max number of cameras, %d\n", NUM_CAMERAS);
+        if (gWorldInstance.GetCurrentCourse()->bTourEnabled) {
+            spawn_and_set_player_spawns();
+        }
+        return nullptr;
+    }
+
+    if (nullptr == gWorldInstance.GetCurrentCourse()) {
+        // This is to prevent soft locking the game
+        if (gWorldInstance.GetCurrentCourse()->bTourEnabled) {
+            spawn_and_set_player_spawns();
+        }
+        return nullptr;
+    }
+
+    if (gWorldInstance.GetCurrentCourse()->TourShots.size() == 0) {
+        // This is to prevent soft locking the game
+        if (gWorldInstance.GetCurrentCourse()->bTourEnabled) {
+            spawn_and_set_player_spawns();
+        }
+        return nullptr;
+    }
+
+    gWorldInstance.Cameras.push_back(new TourCamera(FVector(spawn[0], spawn[1], spawn[2]), rot, mode));
+    TourCamera* tour = static_cast<TourCamera*>(gWorldInstance.Cameras.back());
+    tour->SetActive(true);
+    return tour->Get();
+}
+
+bool CM_IsTourEnabled() {
+    if (nullptr != gWorldInstance.GetCurrentCourse()) {
+        if ((gWorldInstance.GetCurrentCourse()->bTourEnabled) && (gTourComplete == false)) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+Camera* CM_AddLookBehindCamera(Vec3f spawn, s16 rot, u32 mode) {
+    if (gWorldInstance.Cameras.size() >= NUM_CAMERAS) {
+        printf("Reached the max number of cameras, %d\n", NUM_CAMERAS);
+        return nullptr;
+    }
+    gWorldInstance.Cameras.push_back(new LookBehindCamera(FVector(spawn[0], spawn[1], spawn[2]), rot, mode));
+    return gWorldInstance.Cameras.back()->Get();
+}
+
+void CM_AttachCamera(Camera* camera, s32 playerIdx) {
+    camera->playerId = playerIdx;
+}
+
+void CM_CameraSetActive(size_t idx, bool state) {
+    if (idx < gWorldInstance.Cameras.size()) {
+        gWorldInstance.Cameras[idx]->SetActive(state);
+    }
+}
+
+void CM_SetFreeCamera(bool state) {
+    for (auto* cam : gWorldInstance.Cameras) {
+        if (cam->Get() == D_800DC5EC->freeCamera) {
+            if (state) {
+                D_800DC5EC->pendingCamera = D_800DC5EC->freeCamera;
+                cam->SetActive(true);
+            } else {
+                if (nullptr != D_800DC5EC->raceCamera) {
+                    if (gGamestate == RACING) {
+                        D_800DC5EC->pendingCamera = D_800DC5EC->raceCamera;
+                        cam->SetActive(false);
+                    } else {
+                        cam->SetActive(false);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void CM_ActivateTourCamera(Camera* camera) {
+    for (auto* cam : gWorldInstance.Cameras) {
+        if (cam->Get() == camera) {
+            cam->SetActive(true);
+        }
+    }
 }
 
 void CM_TickObjects() {
@@ -598,7 +781,15 @@ void CM_DeleteActor(size_t index) {
  * Clean up actors and other game objects.
  */
 void CM_CleanWorld(void) {
-    gWorldInstance.ClearWorld();
+    gWorldInstance.CleanWorld();
+}
+
+void CM_CleanCameras(void) {
+    for (auto& camera : gWorldInstance.Cameras) {
+        delete camera;
+    }
+
+    gWorldInstance.Cameras.clear();
 }
 
 struct Actor* CM_AddBaseActor() {
@@ -722,6 +913,19 @@ void* GetBattleCup(void) {
 // End of frame cleanup of actors, objects, etc.
 void CM_RunGarbageCollector(void) {
     RunGarbageCollector();
+}
+
+void CM_ResetAudio(void) {
+    if(HMAS_IsPlaying(HMAS_MUSIC)){
+        HMAS_AddEffect(HMAS_MUSIC, HMAS_EFFECT_VOLUME, HMAS_LINEAR, 10, 0);
+        HMAS_AddEffect(HMAS_MUSIC, HMAS_EFFECT_STOP,   HMAS_INSTANT, 1, 0);
+    }
+
+    // Fade out music for all sequences and music player indexes 0, and 1
+    for (size_t soundId = 0; soundId < MUSIC_SEQ_MAX; soundId++) {
+        func_800C3448(0x10100000 | soundId);
+        func_800C3448(0x11100000 | soundId);
+    }
 }
 }
 

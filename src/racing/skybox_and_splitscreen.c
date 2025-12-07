@@ -560,22 +560,22 @@ void func_802A4D18(void) {
 void func_802A4EF4(void) {
     switch (gActiveScreenMode) {
         case SCREEN_MODE_1P:
-            func_8001F394(gPlayerOne, &gCameraZoom[0]);
+            func_8001F394(gPlayerOne, &gCameraFOV[0]);
             break;
 
         case SCREEN_MODE_2P_SPLITSCREEN_VERTICAL:
-            func_8001F394(gPlayerOne, &gCameraZoom[0]);
-            func_8001F394(gPlayerTwo, &gCameraZoom[1]);
+            func_8001F394(gPlayerOne, &gCameraFOV[0]);
+            func_8001F394(gPlayerTwo, &gCameraFOV[1]);
             break;
         case SCREEN_MODE_2P_SPLITSCREEN_HORIZONTAL:
-            func_8001F394(gPlayerOne, &gCameraZoom[0]);
-            func_8001F394(gPlayerTwo, &gCameraZoom[1]);
+            func_8001F394(gPlayerOne, &gCameraFOV[0]);
+            func_8001F394(gPlayerTwo, &gCameraFOV[1]);
             break;
         case SCREEN_MODE_3P_4P_SPLITSCREEN:
-            func_8001F394(gPlayerOne, &gCameraZoom[0]);
-            func_8001F394(gPlayerTwo, &gCameraZoom[1]);
-            func_8001F394(gPlayerThree, &gCameraZoom[2]);
-            func_8001F394(gPlayerFour, &gCameraZoom[3]);
+            func_8001F394(gPlayerOne, &gCameraFOV[0]);
+            func_8001F394(gPlayerTwo, &gCameraFOV[1]);
+            func_8001F394(gPlayerThree, &gCameraFOV[2]);
+            func_8001F394(gPlayerFour, &gCameraFOV[3]);
             break;
     }
 }
@@ -585,15 +585,15 @@ void func_802A5004(void) {
     init_rdp();
     func_802A3730(D_800DC5F0);
 
-    gSPClearGeometryMode(gDisplayListHead++, 0xFFFFFFFF);
+    gSPClearGeometryMode(gDisplayListHead++, G_CLEAR_ALL_MODES);
 
     gSPSetGeometryMode(gDisplayListHead++, G_SHADE | G_SHADING_SMOOTH | G_CLIPPING);
 
     func_802A39E0(D_800DC5F0);
     if (D_800DC5B4 != 0) {
-        func_802A4A0C((Vtx*) D_802B8910, D_800DC5F0, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraZoom[1]);
+        func_802A4A0C((Vtx*) D_802B8910, D_800DC5F0, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraFOV[1]);
         func_80057FC4(2);
-        func_802A487C((Vtx*) D_802B8910, D_800DC5F0, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraZoom[1]);
+        func_802A487C((Vtx*) D_802B8910, D_800DC5F0, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraFOV[1]);
         func_80093A30(2);
     }
 }
@@ -603,14 +603,14 @@ void func_802A50EC(void) {
     init_rdp();
     func_802A3730(D_800DC5EC);
 
-    gSPClearGeometryMode(gDisplayListHead++, 0xFFFFFFFF);
+    gSPClearGeometryMode(gDisplayListHead++, G_CLEAR_ALL_MODES);
     gSPSetGeometryMode(gDisplayListHead++, G_SHADE | G_SHADING_SMOOTH | G_CLIPPING);
 
     func_802A39E0(D_800DC5EC);
     if (D_800DC5B4 != 0) {
-        func_802A4A0C((Vtx*) D_802B8890, D_800DC5EC, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraZoom[0]);
+        func_802A4A0C((Vtx*) D_802B8890, D_800DC5EC, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraFOV[0]);
         func_80057FC4(1);
-        func_802A487C((Vtx*) D_802B8890, D_800DC5EC, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraZoom[0]);
+        func_802A487C((Vtx*) D_802B8890, D_800DC5EC, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraFOV[0]);
         func_80093A30(1);
     }
 }
@@ -621,13 +621,13 @@ void func_802A51D4(void) {
     func_802A39E0(D_800DC5EC);
     func_802A3730(D_800DC5EC);
 
-    gSPClearGeometryMode(gDisplayListHead++, 0xFFFFFFFF);
+    gSPClearGeometryMode(gDisplayListHead++, G_CLEAR_ALL_MODES);
     gSPSetGeometryMode(gDisplayListHead++, G_SHADE | G_SHADING_SMOOTH | G_CLIPPING);
 
     if (D_800DC5B4 != 0) {
-        func_802A4A0C((Vtx*) D_802B8890, D_800DC5EC, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraZoom[0]);
+        func_802A4A0C((Vtx*) D_802B8890, D_800DC5EC, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraFOV[0]);
         func_80057FC4(3);
-        func_802A487C((Vtx*) D_802B8890, D_800DC5EC, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraZoom[0]);
+        func_802A487C((Vtx*) D_802B8890, D_800DC5EC, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraFOV[0]);
         func_80093A30(3);
     }
 }
@@ -638,13 +638,13 @@ void func_802A52BC(void) {
     func_802A39E0(D_800DC5F0);
     func_802A3730(D_800DC5F0);
 
-    gSPClearGeometryMode(gDisplayListHead++, 0xFFFFFFFF);
+    gSPClearGeometryMode(gDisplayListHead++, G_CLEAR_ALL_MODES);
     gSPSetGeometryMode(gDisplayListHead++, G_SHADE | G_SHADING_SMOOTH | G_CLIPPING);
 
     if (D_800DC5B4 != 0) {
-        func_802A4A0C((Vtx*) D_802B8910, D_800DC5F0, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraZoom[1]);
+        func_802A4A0C((Vtx*) D_802B8910, D_800DC5F0, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraFOV[1]);
         func_80057FC4(4);
-        func_802A487C((Vtx*) D_802B8910, D_800DC5F0, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraZoom[1]);
+        func_802A487C((Vtx*) D_802B8910, D_800DC5F0, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraFOV[1]);
         func_80093A30(4);
     }
 }
@@ -653,17 +653,17 @@ void func_802A53A4(void) {
     init_rdp();
     func_802A3730(D_800DC5EC);
 
-    gSPClearGeometryMode(gDisplayListHead++, 0xFFFFFFFF);
+    gSPClearGeometryMode(gDisplayListHead++, G_CLEAR_ALL_MODES);
     gSPSetGeometryMode(gDisplayListHead++, G_SHADE | G_SHADING_SMOOTH | G_CLIPPING);
 
     init_z_buffer();
     select_framebuffer();
     if (D_800DC5B4 != 0) {
-        func_802A4A0C((Vtx*) D_802B8890, D_800DC5EC, 0x140, 0xF0, &gCameraZoom[0]);
+        func_802A4A0C((Vtx*) D_802B8890, D_800DC5EC, 0x140, 0xF0, &gCameraFOV[0]);
         if (gGamestate != CREDITS_SEQUENCE) {
             func_80057FC4(0);
         }
-        func_802A487C((Vtx*) D_802B8890, D_800DC5EC, 0x140, 0xF0, &gCameraZoom[0]);
+        func_802A487C((Vtx*) D_802B8890, D_800DC5EC, 0x140, 0xF0, &gCameraFOV[0]);
         func_80093A30(0);
     }
 }
@@ -674,13 +674,13 @@ void func_802A54A8(void) {
     func_802A39E0(D_800DC5EC);
     func_802A3730(D_800DC5EC);
 
-    gSPClearGeometryMode(gDisplayListHead++, 0xFFFFFFFF);
+    gSPClearGeometryMode(gDisplayListHead++, G_CLEAR_ALL_MODES);
     gSPSetGeometryMode(gDisplayListHead++, G_SHADE | G_SHADING_SMOOTH | G_CLIPPING);
 
     if (D_800DC5B4 != 0) {
-        func_802A4A0C((Vtx*) D_802B8890, D_800DC5EC, 0x140, 0xF0, &gCameraZoom[0]);
+        func_802A4A0C((Vtx*) D_802B8890, D_800DC5EC, 0x140, 0xF0, &gCameraFOV[0]);
         func_80057FC4(8);
-        func_802A487C((Vtx*) D_802B8890, D_800DC5EC, 0x140, 0xF0, &gCameraZoom[0]);
+        func_802A487C((Vtx*) D_802B8890, D_800DC5EC, 0x140, 0xF0, &gCameraFOV[0]);
         func_80093A30(8);
     }
 }
@@ -691,13 +691,13 @@ void func_802A5590(void) {
     func_802A39E0(D_800DC5F0);
     func_802A3730(D_800DC5F0);
 
-    gSPClearGeometryMode(gDisplayListHead++, 0xFFFFFFFF);
+    gSPClearGeometryMode(gDisplayListHead++, G_CLEAR_ALL_MODES);
     gSPSetGeometryMode(gDisplayListHead++, G_SHADE | G_SHADING_SMOOTH | G_CLIPPING);
 
     if (D_800DC5B4 != 0) {
-        func_802A4A0C((Vtx*) D_802B8910, D_800DC5F0, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraZoom[1]);
+        func_802A4A0C((Vtx*) D_802B8910, D_800DC5F0, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraFOV[1]);
         func_80057FC4(9);
-        func_802A487C((Vtx*) D_802B8910, D_800DC5F0, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraZoom[1]);
+        func_802A487C((Vtx*) D_802B8910, D_800DC5F0, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraFOV[1]);
         func_80093A30(9);
     }
 }
@@ -708,13 +708,13 @@ void func_802A5678(void) {
     func_802A39E0(D_800DC5F4);
     func_802A3730(D_800DC5F4);
 
-    gSPClearGeometryMode(gDisplayListHead++, 0xFFFFFFFF);
+    gSPClearGeometryMode(gDisplayListHead++, G_CLEAR_ALL_MODES);
     gSPSetGeometryMode(gDisplayListHead++, G_SHADE | G_SHADING_SMOOTH | G_CLIPPING);
 
     if (D_800DC5B4 != 0) {
-        func_802A4A0C((Vtx*) D_802B8990, D_800DC5F4, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraZoom[2]);
+        func_802A4A0C((Vtx*) D_802B8990, D_800DC5F4, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraFOV[2]);
         func_80057FC4(10);
-        func_802A487C((Vtx*) D_802B8990, D_800DC5F4, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraZoom[2]);
+        func_802A487C((Vtx*) D_802B8990, D_800DC5F4, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraFOV[2]);
         func_80093A30(10);
     }
 }
@@ -723,7 +723,7 @@ void func_802A5760(void) {
 
     init_rdp();
 
-    gSPClearGeometryMode(gDisplayListHead++, 0xFFFFFFFF);
+    gSPClearGeometryMode(gDisplayListHead++, G_CLEAR_ALL_MODES);
     gSPSetGeometryMode(gDisplayListHead++, G_SHADE | G_SHADING_SMOOTH | G_CLIPPING);
 
     if (gPlayerCountSelection1 == 3) {
@@ -747,42 +747,12 @@ void func_802A5760(void) {
         func_802A39E0(D_800DC5F8);
 
         if (D_800DC5B4 != 0) {
-            func_802A4A0C(D_802B8A10, D_800DC5F8, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraZoom[3]);
+            func_802A4A0C(D_802B8A10, D_800DC5F8, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraFOV[3]);
             func_80057FC4(11);
-            func_802A487C(D_802B8A10, D_800DC5F8, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraZoom[3]);
+            func_802A487C(D_802B8A10, D_800DC5F8, SCREEN_WIDTH, SCREEN_HEIGHT, &gCameraFOV[3]);
             func_80093A30(11);
         }
     }
-}
-
-// Setup the cameras perspective and lookAt (movement/rotation)
-void setup_camera(Camera* camera, s32 playerId, s32 cameraId, struct UnkStruct_800DC5EC* screen) {
-    u16 perspNorm;
-
-    // This allows freecam to create a new separate camera
-    if (CVarGetInteger("gFreecam", 0) == true) {
-        freecam_render_setup(gFreecamCamera);
-        return;
-    }
-
-    // Tag the camera for the interpolation engine
-    FrameInterpolation_RecordOpenChild("camera",
-                                       (FrameInterpolation_GetCameraEpoch() | (playerId | (cameraId << 8))));
-
-    // Calculate camera perspective (camera movement/location)
-    guPerspective(GetPerspMatrix(cameraId), &perspNorm, gCameraZoom[cameraId], gScreenAspect,
-                  CM_GetProps()->NearPersp, CM_GetProps()->FarPersp, 1.0f);
-    gSPPerspNormalize(gDisplayListHead++, perspNorm);
-    gSPMatrix(gDisplayListHead++, GetPerspMatrix(cameraId),
-              G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
-
-    // Calculate the camera lookAt (camera rotation)
-    guLookAt(GetLookAtMatrix(cameraId), camera->pos[0], camera->pos[1], camera->pos[2], camera->lookAt[0],
-             camera->lookAt[1], camera->lookAt[2], camera->up[0], camera->up[1], camera->up[2]);
-    gSPMatrix(gDisplayListHead++, GetLookAtMatrix(cameraId),
-              G_MTX_NOPUSH | G_MTX_MUL | G_MTX_PROJECTION);
-
-    FrameInterpolation_RecordCloseChild();
 }
 
 void render_screens(s32 mode, s32 cameraId, s32 playerId) {
@@ -848,16 +818,15 @@ void render_screens(s32 mode, s32 cameraId, s32 playerId) {
     }
 
     struct UnkStruct_800DC5EC* screen = &D_8015F480[screenId];
-    Camera* camera;
+    Camera* camera = screen->camera;
+    cameraId = camera->cameraId;
+    // CM_GetCamera(cameraId);
 
-    // Required for freecam to have its own camera
-    if (CVarGetInteger("gFreecam", 0) == true) {
-       camera = &cameras[CAMERA_FREECAM];
-       cameraId = CAMERA_FREECAM;
-    } else {
-        camera = &cameras[cameraId];
+    if (NULL == camera) {
+        printf("NO CAMERA SELECTED\n");
+        return;
     }
-    
+
     if (screenMode == SCREEN_MODE_2P_SPLITSCREEN_HORIZONTAL) {
         gSPSetGeometryMode(gDisplayListHead++, G_SHADE | G_CULL_BACK | G_LIGHTING | G_SHADING_SMOOTH);
     }
@@ -868,10 +837,10 @@ void render_screens(s32 mode, s32 cameraId, s32 playerId) {
     gDPSetRenderMode(gDisplayListHead++, G_RM_AA_ZB_OPA_SURF, G_RM_AA_ZB_OPA_SURF2);
 
     // Setup camera perspective and lookAt
-    setup_camera(camera, playerId, cameraId, screen);
+    CM_SetViewProjection(camera);
 
     // Create a matrix for the track and game objects
-    FrameInterpolation_RecordOpenChild("track", TAG_TRACK((cameraId | playerId)));
+    FrameInterpolation_RecordOpenChild("track", TAG_TRACK((cameraId | (playerId << 2))));
     Mat4 trackMatrix;
     mtxf_identity(trackMatrix);
     if (gIsMirrorMode != 0) {
@@ -889,22 +858,12 @@ void render_screens(s32 mode, s32 cameraId, s32 playerId) {
     render_course_actors(screen);
     CM_DrawActors(camera);
     CM_DrawStaticMeshActors();
-    render_object(mode);
+    render_object(screen);
 
-    switch (screenId) {
-        case 0:
-            render_players_on_screen_one();
-            break;
-        case 1:
-            render_players_on_screen_two();
-            break;
-        case 2:
-            render_players_on_screen_three();
-            break;
-        case 3:
-            render_players_on_screen_four();
-            break;
+    if (CM_IsTourEnabled() == false) {
+        render_players(camera, screenId);
     }
+
     func_8029122C(screen, playerId); // Track water related
 
     switch (playerId) { // Render player particles or some effect
@@ -923,7 +882,7 @@ void render_screens(s32 mode, s32 cameraId, s32 playerId) {
     };
 
     render_item_boxes(screen);
-    render_player_snow_effect(mode);
+    render_player_snow_effect(camera);
     func_80058BF4(); // Setup texture modes
     if (D_800DC5B8 != 0) {
         func_80058C20(mode); // Setup hud matrix
@@ -952,16 +911,12 @@ void set_screen(void) {
 
     for (i = 0; i < 4; i++) {
         wrapper->controllers = controller;
-        if ((CVarGetInteger("gFreecam", 0) == true) && (i == PLAYER_ONE)) {
-            wrapper->camera = gFreecamCamera;
-        } else {
-            wrapper->camera = camera;
-        }
+//        wrapper->camera = &cameras[i]; // Done in spawn_players now
         wrapper->player = player;
         wrapper->unkC = unk;
 
         // Tick is not enabled in the editor, so the screen needs to begin at the proper size.
-        if ((CVarGetInteger("gEditorEnabled", 0) == true) && (gIsEditorPaused) && (i == PLAYER_ONE)) {
+        if (((CVarGetInteger("gEditorEnabled", 0) == true) && (gIsEditorPaused) && (i == PLAYER_ONE)) || CM_IsTourEnabled() == true) {
             wrapper->screenWidth = SCREEN_WIDTH;
             wrapper->screenHeight = SCREEN_HEIGHT;
         } else { // Normal race start, screen is small

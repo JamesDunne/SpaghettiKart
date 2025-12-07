@@ -126,7 +126,7 @@ void render_course_segments(const char* addr[], struct UnkStruct_800DC5EC* arg1)
     }
     arg1->playerDirection = direction;
 
-    if (D_80152300[camera - camera1] == 1) {
+    if (camera->mode == 1) {
         sp1E = get_track_section_id(camera->collision.meshIndexZX);
         temp_v0_3 = get_track_section_id(player->collision.meshIndexZX);
         index = sp1E - temp_v0_3;
@@ -200,9 +200,9 @@ void func_80291198(void) {
     gSPDisplayList(gDisplayListHead++, (Gfx*) d_course_mario_raceway_packed_dl_1140); //
 }
 
-void func_8029122C(struct UnkStruct_800DC5EC* arg0, s32 playerId) {
+void func_8029122C(struct UnkStruct_800DC5EC* screen, s32 playerId) {
     UNUSED s32 pad;
-    Player* player = arg0->player;
+    Player* player = screen->player;
     Mat4 matrix;
     Vec3f vector;
     u16 pathCounter;
@@ -210,38 +210,20 @@ void func_8029122C(struct UnkStruct_800DC5EC* arg0, s32 playerId) {
     s16 playerDirection;
 
     init_rdp();
-    pathCounter = (u16) arg0->pathCounter;
-    cameraRot = (u16) arg0->camera->rot[1];
-    playerDirection = arg0->playerDirection;
+    pathCounter = (u16) screen->pathCounter;
+    cameraRot = (u16) screen->camera->rot[1];
+    playerDirection = screen->playerDirection;
 
     // This pushes the camera matrices to the top of the stack.
     // It does not appear to really do anything.
-    // Perhaps they thought it was necessary to set the camera back to projection mode since rainbow road uses model
-    // mode. But that issue should be cleared up in render_screens() already.
-    switch (playerId) {
-        case PLAYER_ONE:
-            size_t playerIdx = PLAYER_ONE;
-            if (CVarGetInteger("gFreecam", 0) == true) {
-                playerIdx = CAMERA_FREECAM;
-            }
-            gSPMatrix(gDisplayListHead++, GetPerspMatrix(playerIdx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
-            gSPMatrix(gDisplayListHead++, GetLookAtMatrix(playerIdx), G_MTX_NOPUSH | G_MTX_MUL | G_MTX_PROJECTION);
-            break;
-        case PLAYER_TWO:
-            gSPMatrix(gDisplayListHead++, GetPerspMatrix(PLAYER_TWO), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
-            gSPMatrix(gDisplayListHead++, GetLookAtMatrix(PLAYER_TWO), G_MTX_NOPUSH | G_MTX_MUL | G_MTX_PROJECTION);
-            break;
-        case PLAYER_THREE:
-            gSPMatrix(gDisplayListHead++, GetPerspMatrix(PLAYER_THREE), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
-            gSPMatrix(gDisplayListHead++, GetLookAtMatrix(PLAYER_THREE), G_MTX_NOPUSH | G_MTX_MUL | G_MTX_PROJECTION);
-            break;
-        case PLAYER_FOUR:
-            gSPMatrix(gDisplayListHead++, GetPerspMatrix(PLAYER_FOUR), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
-            gSPMatrix(gDisplayListHead++, GetLookAtMatrix(PLAYER_FOUR), G_MTX_NOPUSH | G_MTX_MUL | G_MTX_PROJECTION);
-            break;
-    }
+    // Perhaps they thought it was necessary to set the camera back to projection mode since rainbow road uses model mode.
+    // But that issue should be cleared up in render_screens() already.
+    gSPMatrix(gDisplayListHead++, screen->camera->perspectiveMatrix,
+                G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
+    gSPMatrix(gDisplayListHead++, screen->camera->lookAtMatrix,
+                G_MTX_NOPUSH | G_MTX_MUL | G_MTX_PROJECTION);
 
-    FrameInterpolation_RecordOpenChild("track_water", playerId);
+    FrameInterpolation_RecordOpenChild("track_water", screen->camera->cameraId);
 
     mtxf_identity(matrix);
     if (gIsMirrorMode != 0) {
@@ -251,29 +233,13 @@ void func_8029122C(struct UnkStruct_800DC5EC* arg0, s32 playerId) {
     }
     render_set_position(matrix, 0);
 
-    CM_DrawWater(arg0, pathCounter, cameraRot, playerDirection);
+    CM_DrawWater(screen, pathCounter, cameraRot, playerDirection);
     FrameInterpolation_RecordCloseChild();
 }
 
-void render_credits(void) {
-    CM_RenderCredits();
-}
-
-void render_course(struct UnkStruct_800DC5EC* arg0) {
+void render_course(struct UnkStruct_800DC5EC* screen) {
     set_track_light_direction(D_800DC610, D_802B87D4, 0, 1);
-
-    // Freecam priority renders collision.
-    if (CVarGetInteger("gRenderCollisionMesh", 0) == true) {
-        render_collision();
-        return;
-    }
-
-    if (creditsRenderMode) {
-        render_credits();
-        return;
-    }
-
-    CM_RenderCourse(arg0);
+    CM_RenderCourse(screen);
 }
 
 void func_80295BF8(s32 playerIndex) {

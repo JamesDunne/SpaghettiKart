@@ -17,9 +17,15 @@ extern "C" {
 #include "defines.h"
 #include "audio/external.h"
 #include "menus.h"
+#include "code_800029B0.h"
 #include "assets/models/common_data.h"
 #include "assets/models/tracks/mario_raceway/mario_raceway_data.h"
 }
+
+#include "engine/cameras/GameCamera.h"
+#include "engine/cameras/FreeCamera.h"
+#include "engine/cameras/TourCamera.h"
+#include "engine/cameras/LookBehindCamera.h"
 
 std::shared_ptr<Course> CurrentCourse;
 Cup* CurrentCup;
@@ -29,7 +35,7 @@ World::World() {
 }
 
 World::~World() {
-    ClearWorld();
+    CleanWorld();
 }
 
 std::shared_ptr<Course> World::AddCourse(std::shared_ptr<Course> course) {
@@ -137,6 +143,24 @@ void World::PreviousCourse() {
     gWorldInstance.SetCurrentCourse(Courses[CourseIndex]);
 }
 
+void World::TickCameras() {
+
+    for (size_t i = 0; i < 4; i++) {
+        struct UnkStruct_800DC5EC* screen = &D_8015F480[i];
+        if (NULL == screen->pendingCamera) { continue; }
+        if (screen->pendingCamera != screen->camera) {
+            screen->camera = screen->pendingCamera;
+            screen->pendingCamera = nullptr;
+        }
+    }
+
+    for (GameCamera* camera : Cameras) {
+        if (camera->IsActive()) {
+            camera->Tick();
+        }
+    }
+}
+
 AActor* World::AddActor(AActor* actor) {
     Actors.push_back(actor);
     actor->BeginPlay();
@@ -196,7 +220,7 @@ StaticMeshActor* World::AddStaticMeshActor(std::string name, FVector pos, IRotat
 }
 
 void World::DrawStaticMeshActors() {
-    for (const auto& actor: StaticMeshActors) {
+    for (const auto& actor : StaticMeshActors) {
         actor->Draw();
     }
 }
@@ -266,7 +290,7 @@ Object* World::GetObjectByIndex(size_t index) {
 }
 
 // Deletes all objects from the world
-void World::ClearWorld(void) {
+void World::CleanWorld(void) {
     printf("[Game.cpp] Clean World\n");
     World* world = &gWorldInstance;
     for (auto& actor : world->Actors) {
@@ -297,7 +321,4 @@ void World::ClearWorld(void) {
     gWorldInstance.Objects.clear();
     gWorldInstance.Emitters.clear();
     gWorldInstance.Lakitus.clear();
-
-    gWorldInstance.GetRaceManager().Clean();
-
 }
