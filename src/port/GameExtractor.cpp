@@ -5,11 +5,13 @@
 #pragma comment(lib, "Shlwapi.lib")
 #endif
 #include "GameExtractor.h"
+#include <cstdio>
 #include <unordered_map>
 #include <Companion.h>
 
 #include <fstream>
 
+#include "Companion.h"
 #include "Context.h"
 #include "spdlog/spdlog.h"
 #include <port/Engine.h>
@@ -189,6 +191,7 @@ bool GameExtractor::GenerateOTR() const {
     const std::string game_path = Ship::Context::GetAppDirectoryPath();
 
     Companion::Instance = new Companion(this->mGameData, ArchiveType::O2R, false, assets_path, game_path);
+    Companion::Instance->SetAdditionalFiles({ "meta/mods.toml" });
 
     try {
         Companion::Instance->Init(ExportType::Binary);
