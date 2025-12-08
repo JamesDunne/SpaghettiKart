@@ -128,3 +128,4 @@ cmake-build-*/
 build*/
 .DS_Store
 .cache/
+_packages/
